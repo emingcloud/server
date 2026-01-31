@@ -1,0 +1,15 @@
+services:
+  scylla:
+    image: scylladb/scylla
+    container_name: scylla
+    command:
+      - --developer-mode=1
+      - --overprovisioned=1
+      - --smp=1
+    volumes:
+      - scylla_data:/var/lib/scylla
+    ports:
+      - "192.168.19.254:9042:9042"
+
+volumes:
+  scylla_data:

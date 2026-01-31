@@ -1,0 +1,30 @@
+create keyspace if not exists deep_sea
+with replication = {
+    'class': 'SimpleStrategy',
+    'replication_factor': 1
+};
+alter keyspace deep_sea with replication ={
+    'class': 'SimpleStrategy',
+    'replication_factor': '1'
+};
+create table if not exists user (
+    user_id UUID,
+    email TEXT,
+    name TEXT,
+    password TEXT,
+    created_at TIMESTAMP,
+    PRIMARY KEY (user_id)
+);
+
+create table if not exists user_by_email (
+    email TEXT,
+    user_id uuid,
+    primary key (email)
+);
+create table if not exists refresh_token (
+    user_id uuid,
+    token_value text,
+    device_info text,
+    created_at timestamp,
+    PRIMARY KEY (user_id, token_value)
+);
