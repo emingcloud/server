@@ -6,7 +6,6 @@ import validatePassword from "../helper/validatePassword";
 import hashPassword from "../helper/hashPassword";
 import verifyPassword from "../helper/verifyPassword";
 import jwt from "jsonwebtoken";
-import { token } from "cassandra-driver";
 const router = Router();
 
 router.post("/signup", async (req, res, next) => {
@@ -30,7 +29,7 @@ router.post("/signup", async (req, res, next) => {
 
     const hashedPassword = await hashPassword(password);
     const userResult = await db.execute(
-      "INSERT INTO user (user_id, email, name, password, created_at) VALUES (?, ?, ?, ?, ?) IF NOT EXISTS",
+      "INSERT INTO users (user_id, email, name, password, created_at) VALUES (?, ?, ?, ?, ?) IF NOT EXISTS",
       [userId, email, name, hashedPassword, new Date()],
       { prepare: true },
     );
@@ -39,10 +38,9 @@ router.post("/signup", async (req, res, next) => {
 
     return res.status(201).json({ message: "User created successfully" });
   } catch (err) {
-    console.error("Database error, attempting to clear potential orphans...");
     db.execute("DELETE FROM user_by_email WHERE email = ?", [email], {
       prepare: true,
-    }).catch((e) => console.error("Critical: Could not clean up orphan!", e));
+    });
 
     return next(err);
   }
@@ -61,7 +59,7 @@ router.post("/login", async (req, res, next) => {
     );
     if (!rows[0]) throw next(new Error("email not exist"));
     const { rows: users } = await db.execute(
-      "select * from user where user_id = ?",
+      "select * from users where user_id = ?",
       [rows[0].get("user_id")],
       { prepare: true },
     );
@@ -72,9 +70,10 @@ router.post("/login", async (req, res, next) => {
     }
     const payload = {
       id: user.get("user_id"),
+      role: user.get("role"),
     };
     const accessToken = jwt.sign(payload, process.env.access_secret!, {
-      expiresIn: "15m",
+      expiresIn: "60m",
     });
     const refreshToken = jwt.sign(payload, process.env.refresh_secret!, {
       expiresIn: "7d",
