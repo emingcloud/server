@@ -17,32 +17,34 @@ router.post("/", admin, async (req, res, next) => {
   const {
     title,
     plot,
-    release_year,
+    releaseYear,
     rating,
     duration,
     genres,
-    poster_url,
+    posterUrl,
+    backdropUrl,
+    videoUrl,
     actors,
+    embedding,
   } = req.body;
-  const query = `
-      INSERT INTO movies (movie_id, title, plot, release_year, rating, duration, actors, poster_url, embedding)
-      VALUES (uuid(), ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-  const params = [
-    title,
-    plot,
-    release_year,
-    rating,
-    duration,
-    actors,
-    poster_url,
-    null, // replace with 'embedding' variable if using vector search
-  ];
+
   try {
-    await db.execute(query, params, { prepare: true });
+    await MovieRepository.addMovie({
+      title,
+      plot,
+      releaseYear,
+      actors,
+      backdropUrl,
+      posterUrl,
+      videoUrl,
+      rating,
+      duration,
+      genres,
+      embedding,
+    });
   } catch (err) {
     console.log(err);
-    return next(new Error("movie could not be created"));
+    return next(err);
   }
   return res.json({
     data: true,

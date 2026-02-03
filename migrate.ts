@@ -50,7 +50,7 @@ await client.execute(`
     poster_url text,
     backdrop_url text,
     video_url text,
-    actors list<text>,
+    actors set<text>,
     created_at timestamp,
     embedding vector<float, 1024>,
     primary key (movie_id)
